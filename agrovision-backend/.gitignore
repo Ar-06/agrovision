@@ -1,8 +1,8 @@
-.env
+.venv/
 venv/
 __pycache__/
 *.pyc
-.vscode/
+.python-version
 
 # Modelos de machine learning
 agrovision-backend/models/
