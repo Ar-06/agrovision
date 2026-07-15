@@ -12,3 +12,5 @@ agrovision-backend/models/
 # Logs
 logs/
 *.log
+
+.env
