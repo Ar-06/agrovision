@@ -1,4 +1,8 @@
 {
+    "python.defaultInterpreterPath": "${workspaceFolder}/agrovision-backend/venv/bin/python",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/agrovision-backend"
+    ],
     "js/ts.experimental.useTsgo": false,
     "remote.autoForwardPortsFallback": 0
 }

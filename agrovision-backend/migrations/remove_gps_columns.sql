@@ -1,0 +1,5 @@
+ALTER TABLE detections
+    DROP COLUMN IF EXISTS latitud,
+    DROP COLUMN IF EXISTS longitud,
+    DROP COLUMN IF EXISTS satelites,
+    DROP COLUMN IF EXISTS hdop;
