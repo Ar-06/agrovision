@@ -1,0 +1,4 @@
+{
+    "js/ts.experimental.useTsgo": false,
+    "remote.autoForwardPortsFallback": 0
+}
