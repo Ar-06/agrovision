@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile, WebSocket
+from fastapi import APIRouter, Depends, File, Query, UploadFile, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import JSONResponse
 from fastapi.websockets import WebSocketDisconnect
@@ -9,6 +9,7 @@ from app.services.image_processing import (
     preparar_imagen_modelo,
 )
 from app.services.inference import predecir_imagen
+from app.services.detection_history import obtener_historial_detecciones
 from app.websocket.manager import manager
 from app.database.connection import get_db
 from app.models.detection import Detection
@@ -41,6 +42,20 @@ async def websocket_detecciones(
                 })
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+@router.get("/detecciones")
+async def listar_detecciones(
+    limite: int = Query(default=20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    return await obtener_historial_detecciones(db, limite)
+
+@router.get("/detecciones/historial")
+async def obtener_historial(
+    limite: int = Query(default=20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    return await obtener_historial_detecciones(db, limite)
 
 @router.post("/predict")
 async def predict_image(

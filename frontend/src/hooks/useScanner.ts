@@ -14,7 +14,7 @@ export interface PredictionResponse {
   diagnostico: string;
   confianza: number;
   box: BoxCoords | null;
-  fecha_creacion: string;
+  fecha_creacion: string | null;
   error?: string;
 }
 

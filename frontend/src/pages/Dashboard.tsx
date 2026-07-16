@@ -1,18 +1,24 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAgroVisionSocket } from "@/hooks/useAgrovisionSocket";
+import { useDetectionHistory } from "@/hooks/useDetectionHistory";
 import { useScanner } from "@/hooks/useScanner";
 import {
   Activity,
   AlertTriangle,
   Camera,
+  Clock3,
+  History,
   Leaf,
+  RefreshCw,
 } from "lucide-react";
 import { useEffect } from "react";
 
-const API_URL =
-  `${import.meta.env.VITE_API_URL}/predict`;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+const API_URL = `${API_BASE_URL}/predict`;
 
 const WS_URL =
   import.meta.env.VITE_WS_URL;
@@ -39,6 +45,13 @@ export function DashBoard() {
     conectado,
     ultimaDeteccion,
   } = useAgroVisionSocket(WS_URL);
+
+  const {
+    history,
+    isLoading: isHistoryLoading,
+    error: historyError,
+    reload: reloadHistory,
+  } = useDetectionHistory(API_BASE_URL, ultimaDeteccion);
 
   const diagnosticoActual = ultimaDeteccion?.diagnostico ?? diagnostico;
 
@@ -73,6 +86,19 @@ export function DashBoard() {
     !esperando &&
     !hayError &&
     !esSana;
+
+  const formatDate = (date: string | null) => {
+    if (!date) {
+      return "Sin fecha";
+    }
+
+    return new Intl.DateTimeFormat("es-CO", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(date));
+  };
 
   const statusColor = esSana
   ? "bg-green-500"
@@ -215,6 +241,91 @@ export function DashBoard() {
                   className={`h-2 ${esSana ? "[&>div]:bg-green-500" : "[&>div]:bg-red-500"}`}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-900 border-slate-800 shadow-xl">
+            <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2 text-slate-200">
+                <History className="h-5 w-5 text-emerald-400" />
+                Historial de Detecciones
+              </CardTitle>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                className="border-slate-700 bg-slate-950 text-slate-300 hover:bg-slate-800 hover:text-white"
+                onClick={() => void reloadHistory()}
+                disabled={isHistoryLoading}
+                aria-label="Recargar historial"
+              >
+                <RefreshCw
+                  className={isHistoryLoading ? "animate-spin" : ""}
+                />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {historyError && (
+                <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-300">
+                  {historyError}
+                </div>
+              )}
+
+              {!historyError && isHistoryLoading && (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((item) => (
+                    <div
+                      key={item}
+                      className="h-17 animate-pulse rounded-lg border border-slate-800 bg-slate-950"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {!historyError && !isHistoryLoading && history.length === 0 && (
+                <div className="rounded-lg border border-slate-800 bg-slate-950 px-4 py-6 text-center text-sm text-slate-400">
+                  Aún no hay detecciones guardadas.
+                </div>
+              )}
+
+              {!historyError && !isHistoryLoading && history.length > 0 && (
+                <div className="max-h-88 space-y-3 overflow-y-auto pr-1">
+                  {history.map((detection) => {
+                    const detectionIsHealthy =
+                      detection.diagnostico.toLowerCase() === "sanas";
+
+                    return (
+                      <div
+                        key={detection.id}
+                        className="rounded-lg border border-slate-800 bg-slate-950 p-3"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold uppercase tracking-wide text-slate-100">
+                              {detection.diagnostico}
+                            </p>
+                            <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                              <Clock3 className="h-3 w-3" />
+                              {formatDate(detection.fecha_creacion)}
+                            </p>
+                          </div>
+
+                          <Badge
+                            variant="outline"
+                            className={
+                              detectionIsHealthy
+                                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                                : "border-red-400/30 bg-red-400/10 text-red-300"
+                            }
+                          >
+                            {detection.confianza.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 
